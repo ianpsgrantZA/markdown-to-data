@@ -1,31 +1,65 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
+#![allow(unused_imports)]
 
+use std::{path::PathBuf, error::Error, env::{args, Args}};
+
+// Input ./markdown-to-data [file-path] [-o output-path] [-e output type]
 fn main() {
-    println!("HStart");
+    let file_path = std::env::args().nth(1).expect("");
+    let output_path = std::env::args().nth(2).expect(".");
+    let output_type = std::env::args().nth(3).expect("json");
 
-    let path_name = std::env::args().nth(1).expect("");
+    println!("FileData Created!");
+    println!("path: {}", file_path);
+    println!("path: {}", output_path);
+    println!("path: {}", output_type);
 
-    println!("{}", path_name);
-    let path = std::path::PathBuf::from(path_name);
+    let file_data = FileData::from_input(args());
 
-    let file_content = std::fs::read_to_string(&path).expect("could not read file");
 
+
+
+// let file_content = std::fs::read_to_string(&path).expect("could not read file");
     
 
+}
 
-    
+enum OutputType {
+    Json,
+    Markdown,
+    Xml,
+    Html,
+}
 
+impl OutputType {
+    fn from_string(s: &str) -> Result<OutputType, &str> {
+        match s.to_lowercase().as_str() {
+            "json" => Ok(OutputType::Json),
+            "js" => Ok(OutputType::Json),
+            "markdown" => Ok(OutputType::Markdown),
+            "md" => Ok(OutputType::Markdown),
+            "xml" => Ok(OutputType::Xml),
+            "html" => Ok(OutputType::Html),
+            _ => Err("Bad things happened"),
+        }
+    }
 }
 
 struct FileData {
-    file_path: String,
+    path: PathBuf,
+    output_path: PathBuf,
+    output_type: OutputType
 }
 
-impl FileData {
-    fn new(args: &[String]) -> FileData {
-        let file_path = args[1].clone();
 
-        FileData {file_path}
+
+impl FileData {
+    fn from_input(mut args: Args) -> FileData {
+        let path = PathBuf::from(args.nth(1).expect(""));
+        let output_path = PathBuf::from(args.nth(2).expect("."));
+        let output_type = OutputType::from_string(&args.nth(3).expect("json")).unwrap();
+
+        FileData {path, output_path, output_type}
     }
 }
