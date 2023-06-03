@@ -2,27 +2,21 @@
 #![allow(unused_variables)]
 #![allow(unused_imports)]
 
-use std::{path::PathBuf, error::Error, env::{args, Args}};
+use std::{path::PathBuf, error::Error, env::{args, Args, self}, string};
 
 // Input ./markdown-to-data [file-path] [-o output-path] [-e output type]
 fn main() {
-    let file_path = std::env::args().nth(1).expect("");
-    let output_path = std::env::args().nth(2).expect(".");
-    let output_type = std::env::args().nth(3).expect("json");
+    let file_data = FileData::from_input(env::args().collect());
 
     println!("FileData Created!");
-    println!("path: {}", file_path);
-    println!("path: {}", output_path);
-    println!("path: {}", output_type);
-
-    let file_data = FileData::from_input(args());
+    println!("path: {}", file_data.path.to_str().expect("Bad input path"));
+    println!("path: {}", file_data.output_path.to_str().expect("Bad output path"));
+    println!("path: {}", file_data.output_type.to_string());
 
 
-
-
-// let file_content = std::fs::read_to_string(&path).expect("could not read file");
+    let file_content = std::fs::read_to_string(file_data.path).expect("could not read file");
     
-
+    println!("file: {}", file_content);
 }
 
 enum OutputType {
@@ -44,6 +38,15 @@ impl OutputType {
             _ => Err("Bad things happened"),
         }
     }
+
+    fn to_string(&self) -> String {
+        match self {
+            OutputType::Json => String::from("json"),
+            OutputType::Markdown => String::from("markdown"),
+            OutputType::Xml => String::from("xml"),
+            OutputType::Html => String::from("html"),
+        }
+    }
 }
 
 struct FileData {
@@ -52,14 +55,11 @@ struct FileData {
     output_type: OutputType
 }
 
-
-
 impl FileData {
-    fn from_input(mut args: Args) -> FileData {
-        let path = PathBuf::from(args.nth(1).expect(""));
-        let output_path = PathBuf::from(args.nth(2).expect("."));
-        let output_type = OutputType::from_string(&args.nth(3).expect("json")).unwrap();
-
+    fn from_input(args: Vec<String>) -> FileData {
+        let path = PathBuf::from(&args[1]);
+        let output_path = PathBuf::from(&args[2]);
+        let output_type = OutputType::from_string(&args[3]).expect("Invalid output type");
         FileData {path, output_path, output_type}
     }
 }
